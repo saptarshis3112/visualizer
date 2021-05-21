@@ -25,23 +25,24 @@
                 Sort
               </v-btn>
               &nbsp;
-              <v-btn @click="reset" depressed :disabled="loading">
-                Reset
-              </v-btn>
+              <v-btn @click="reset" depressed> Reset </v-btn>
             </v-col>
           </v-row>
         </v-container>
       </div>
       <div class="col-lg-8 text-center">
+        <v-progress-linear
+          v-model="progress"
+          color="red"
+          height="10"
+        ></v-progress-linear>
         <v-card outlined elevation="10" style="height: 800px">
-          <div>
+          <div class="my-8">
             <span v-for="(item, key) of items" :key="key">
               <div
                 class="bar bar-unsorted"
                 :style="{ height: `${barHeight * item}px` }"
-              >
-                {{ item }}
-              </div>
+              ></div>
             </span>
           </div>
         </v-card>
@@ -66,8 +67,9 @@ export default {
       sort_name: "BubbleSort",
       loading: false,
       tempArray: [],
-
+      currentTempIndex: 0,
       barHeight: 1.5,
+      progress: 0,
     };
   },
 
@@ -92,8 +94,9 @@ export default {
 
     async colorArrays() {
       for (let i = 0; i < this.transitions.length; i++) {
-        
         setTimeout(() => {
+          this.currentTempIndex = i;
+
           let bar = document.getElementsByClassName("bar");
           let [first, second] = this.transitions[i];
           let firstBar = bar[first];
@@ -106,10 +109,11 @@ export default {
           firstBar.className = "bar bar-sorted";
           secondBar.className = "bar bar-sorted";
 
-          firstBar.innerHTML = this.tempArray[first];
-          secondBar.innerHTML = this.tempArray[second];
-
-        }, 100 * i);
+          if (i == this.transitions.length - 1) {
+            this.loading = false;
+            this.clearBars("SORT");
+          }
+        }, 50 * i);
       }
     },
 
@@ -138,6 +142,7 @@ export default {
     },
 
     async sort() {
+      this.progress = 0;
       this.loading = true;
 
       switch (this.sort_name) {
@@ -149,16 +154,16 @@ export default {
         default:
           break;
       }
-
-      this.loading = false;
     },
 
     reset() {
-      this.clearBars();
+      this.loading = false;
+      this.clearBars("UNSORT");
       this.items = [];
       this.tempArray = [];
       this.transitions = [];
-      this.createList("UNSORT");
+      this.createList();
+      this.progress = 0;
     },
   },
 
@@ -169,6 +174,12 @@ export default {
   watch: {
     size: function () {
       this.reset();
+    },
+
+    currentTempIndex: function () {
+      this.progress = parseInt(
+        100 * (this.currentTempIndex / (this.transitions.length - 1))
+      );
     },
   },
 };
