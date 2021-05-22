@@ -82,7 +82,7 @@ export default {
   },
 
   methods: {
-    async do_sort_bubble(list) {
+    do_sort_bubble(list) {
       for (let i = 0; i < list.length; i++) {
         for (let j = 0; j < list.length - 1; j++) {
           if (list[j] > list[j + 1]) {
@@ -214,7 +214,6 @@ export default {
     },
 
     async sort() {
-
       await this.reset();
 
       this.progress = 0;
