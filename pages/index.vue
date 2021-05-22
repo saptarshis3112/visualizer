@@ -13,6 +13,11 @@
                 v-model="size"
                 thumb-label="always"
               ></v-slider>
+              <v-switch
+                v-model="fast"
+                flat
+                :label="`Speed set to ${fast ? 'Fast' : 'Slow'}`"
+              ></v-switch>
               <v-select
                 :items="algorithm_type"
                 filled
@@ -54,9 +59,7 @@
 </template>
 
 <script>
-
 export default {
-  
   data() {
     return {
       size: 50,
@@ -66,13 +69,15 @@ export default {
       progress: 0,
 
       algorithm_type: ["MergeSort", "QuickSort", "HeapSort", "BubbleSort"],
-      sort_name: "BubbleSort",
-      
+      sort_name: "MergeSort",
+
       items: [],
       transitions: [],
       ranges: [],
 
       loading: false,
+      fast: true,
+      FPS: 100,
     };
   },
 
@@ -127,6 +132,63 @@ export default {
       }
     },
 
+    merge(arr, start, mid, end) {
+      let n1 = mid - start + 1;
+      let n2 = end - mid;
+
+      let i, j, k;
+
+      let left_array = new Array(n1);
+      let right_array = new Array(n2);
+
+      for (i = 0; i < n1; i++) {
+        left_array[i] = arr[i + start];
+      }
+
+      for (j = 0; j < n2; j++) {
+        right_array[j] = arr[j + mid + 1];
+      }
+
+      i = 0;
+      j = 0;
+      k = start;
+
+      while (i < n1 && j < n2) {
+        if (left_array[i] <= right_array[j]) {
+          arr[k] = left_array[i];
+          i++;
+        } else {
+          arr[k] = right_array[j];
+          j++;
+        }
+        k++;
+      }
+
+      while (i < n1) {
+        arr[k] = left_array[i];
+        i++;
+        k++;
+      }
+
+      while (j < n2) {
+        arr[k] = right_array[j];
+        k++;
+        j++;
+      }
+
+      this.ranges.push([start, k]);
+      this.transitions.push([...arr]);
+    },
+
+    async do_sort_merge(list, start, end) {
+      if (start < end) {
+        let mid = Math.floor((start + end) / 2);
+        await this.do_sort_merge(list, start, mid);
+        await this.do_sort_merge(list, mid + 1, end);
+        await this.merge(list, start, mid, end);
+      }
+    },
+
     clearBars(type) {
       let className = type == "SORT" ? "bar bar-sorted" : "bar bar-unsorted";
 
@@ -152,6 +214,9 @@ export default {
     },
 
     async sort() {
+
+      await this.reset();
+
       this.progress = 0;
       this.loading = true;
 
@@ -164,6 +229,10 @@ export default {
 
         case "QuickSort":
           await this.do_sort_quick(list, 0, list.length - 1);
+          break;
+
+        case "MergeSort":
+          await this.do_sort_merge(list, 0, list.length - 1);
           break;
 
         default:
@@ -188,7 +257,7 @@ export default {
             this.loading = false;
             this.clearBars("SORT");
           }
-        }, i * 500);
+        }, i * this.FPS);
       }
     },
 
@@ -208,7 +277,6 @@ export default {
   },
 
   watch: {
-
     size: function (val) {
       switch (true) {
         case val <= 100 && val >= 70:
@@ -243,6 +311,10 @@ export default {
       this.progress = parseInt(
         100 * (this.currentTempIndex / (this.transitions.length - 1))
       );
+    },
+
+    fast: function (val) {
+      this.FPS = val ? 100 : 500;
     },
   },
 };
