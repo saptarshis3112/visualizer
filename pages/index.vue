@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="row" style="padding-top: 2%">
+    <div class="row" style="padding-top: 3%">
       <div class="offset-lg-1"></div>
       <div class="col-lg-3">
         <v-container fluid>
@@ -189,6 +189,53 @@ export default {
       }
     },
 
+    async maxHeapify(arr, size, index) {
+      let left = 2 * index + 1;
+      let right = 2 * index + 2;
+      let largest = index;
+
+      if (size > left && arr[left] > arr[largest]) {
+        largest = left;
+      }
+      if (size > right && arr[right] > arr[largest]) {
+        largest = right;
+      }
+      if (largest !== index) {
+        let temp = arr[largest];
+        arr[largest] = arr[index];
+        arr[index] = temp;
+        await this.maxHeapify(arr, size, largest);
+      }
+    },
+
+    async buildMaxHeap(arr, size) {
+      for (let itr = size / 2 - 1; itr >= 0; itr--) {
+        await this.maxHeapify(arr, size, itr);
+      }
+    },
+
+    async do_sort_heap(list) {
+
+      let size = list.length;
+      await this.buildMaxHeap(list, size);
+
+      for (let i = size - 1; i >= 0; i--) {
+        
+        let temp = list[0];
+        list[0] = list[i];
+        list[i] = temp;
+
+        this.ranges.push([0, i]);
+        this.transitions.push([...list]);
+
+        await this.maxHeapify(list, i, 0);
+
+        this.ranges.push([0, 1]);
+        this.transitions.push([...list]);
+
+      }
+    },
+
     clearBars(type) {
       let className = type == "SORT" ? "bar bar-sorted" : "bar bar-unsorted";
 
@@ -232,6 +279,10 @@ export default {
 
         case "MergeSort":
           await this.do_sort_merge(list, 0, list.length - 1);
+          break;
+
+        case "HeapSort":
+          await this.do_sort_heap(list);
           break;
 
         default:
