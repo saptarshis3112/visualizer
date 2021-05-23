@@ -6,12 +6,9 @@
         <v-container fluid>
           <v-row>
             <v-col cols="12">
-
               <v-row>
                 <v-col>
-                  <v-btn depressed dark block @click="reset">
-                    Reset
-                  </v-btn>
+                  <v-btn depressed dark block @click="reset"> Reset </v-btn>
                 </v-col>
               </v-row>
 
